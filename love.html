@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>💓</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Reem+Kufi:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg1:#fff0f5; --bg2:#ffc9da; --bg3:#ff9fbd;
+    --ink:#7a1f3d; --accent:#e63e78; --card:rgba(255,250,252,.92);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;margin:0}
+  body{
+    font-family:"Amiri","Reem Kufi",serif;
+    background:radial-gradient(circle at 30% 20%,var(--bg1),var(--bg2) 55%,var(--bg3));
+    color:var(--ink);
+    overflow:hidden;
+  }
+
+  /* ===== شاشة البداية (أنيميشن) ===== */
+  #intro{
+    position:fixed;inset:0;z-index:50;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:linear-gradient(160deg,#ffd9e5,#ff9fbd);
+    transition:opacity 1s ease, visibility 1s;
+  }
+  #intro.done{opacity:0;visibility:hidden}
+  #intro .big{
+    font-size:90px;color:#fff;
+    animation:beat 1.1s infinite;
+    text-shadow:0 8px 30px rgba(230,62,120,.6);
+  }
+  #intro .typed{
+    margin-top:14px;font-size:28px;color:#fff;min-height:40px;
+    font-weight:700;text-shadow:0 3px 12px rgba(122,31,61,.35);
+  }
+
+  /* ===== الكارت ===== */
+  .stage{
+    position:relative;z-index:5;height:100%;
+    display:flex;align-items:center;justify-content:center;padding:16px;
+  }
+  .card{
+    width:min(94vw,400px);max-height:92vh;overflow:auto;
+    background:var(--card);
+    backdrop-filter:blur(8px);
+    border-radius:28px;padding:34px 26px;text-align:center;
+    box-shadow:0 25px 60px rgba(230,62,120,.3);
+    opacity:0;transform:translateY(30px) scale(.96);
+    transition:all 1s cubic-bezier(.2,.8,.2,1);
+  }
+  .card.show{opacity:1;transform:none}
+  .heart{font-size:62px;color:var(--accent);display:inline-block;animation:beat 1.2s infinite}
+  @keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.2)}30%{transform:scale(1)}45%{transform:scale(1.15)}}
+  h1{font-size:26px;margin:10px 0 4px;font-weight:700}
+  p.hint{margin:0 0 18px;opacity:.75;font-size:18px}
+  input{
+    width:100%;padding:13px 16px;border:2px solid #f7b6cb;border-radius:16px;
+    font:inherit;font-size:20px;text-align:center;outline:none;background:#fff;color:var(--ink);
+    transition:border-color .2s, box-shadow .2s;
+  }
+  input:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(230,62,120,.15)}
+  button{
+    margin-top:14px;width:100%;padding:13px;border:0;border-radius:16px;
+    background:linear-gradient(135deg,#ff6b9d,var(--accent));color:#fff;
+    font:inherit;font-size:21px;font-weight:700;cursor:pointer;
+    box-shadow:0 8px 20px rgba(230,62,120,.35);
+    transition:transform .15s, filter .15s;
+  }
+  button:hover{filter:brightness(1.07)}
+  button:active{transform:scale(.97)}
+  .err{height:22px;margin-top:10px;font-size:16px;color:#c0264f}
+  .shake{animation:shake .4s}
+  @keyframes shake{25%{transform:translateX(-9px)}75%{transform:translateX(9px)}}
+
+  /* ===== الرسائل بعد الفتح ===== */
+  #secret{display:none}
+  #lines{margin-top:12px}
+  #lines p{
+    font-size:21px;line-height:1.9;margin:10px 0;
+    opacity:0;transform:translateY(14px);
+    animation:in .9s forwards;
+  }
+  #lines p.big{font-size:27px;font-weight:700;color:var(--accent)}
+  @keyframes in{to{opacity:1;transform:none}}
+  #next{display:none;margin-top:18px;font-size:19px}
+
+  /* ===== صفحة الذكريات والعدّاد ===== */
+  .card.wide{width:min(96vw,720px)}
+  #memories{display:none}
+  #memories h2{font-size:25px;margin:6px 0 4px}
+  .dates{margin:6px 0 14px;font-size:17px;line-height:1.8;opacity:.85}
+  .counter{
+    display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0 6px;
+  }
+  .unit{
+    background:linear-gradient(160deg,#fff,#ffe1ec);
+    border:2px solid #f7b6cb;border-radius:16px;padding:10px 2px;
+    box-shadow:0 6px 14px rgba(230,62,120,.15);
+  }
+  .unit b{display:block;font-size:clamp(22px,6vw,34px);color:var(--accent);font-variant-numeric:tabular-nums}
+  .unit span{font-size:clamp(12px,3.2vw,16px);opacity:.8}
+  .since{font-size:15px;opacity:.7;margin-bottom:16px}
+
+  .grid{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px;
+  }
+  .tile{
+    position:relative;aspect-ratio:1/1;border-radius:18px;overflow:hidden;
+    background:#fff;border:2px dashed #f2a3be;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    color:#e38aa9;font-size:34px;
+    background-size:cover;background-position:center;
+    transition:transform .2s, border-color .2s;
+  }
+  .tile:hover{transform:scale(1.03);border-color:var(--accent)}
+  .tile.filled{border-style:solid;border-color:#fff;box-shadow:0 8px 18px rgba(230,62,120,.25)}
+  .tile.filled .plus{display:none}
+  .tile .cap{
+    position:absolute;left:0;right:0;bottom:0;width:100%;
+    border:0;border-radius:0;padding:6px 6px;font-size:13px;
+    background:rgba(255,255,255,.85);color:var(--ink);
+  }
+  .tile:not(.filled) .cap{display:none}
+  .tile .x{
+    position:absolute;top:4px;left:4px;width:24px;height:24px;border-radius:50%;
+    background:rgba(255,255,255,.9);color:#c0264f;font-size:14px;line-height:24px;
+    display:none;box-shadow:none;margin:0;padding:0;
+  }
+  .tile.filled .x{display:block}
+  .row{display:flex;gap:10px;margin-top:16px}
+  .row button{margin-top:0;font-size:17px}
+  .ghost{background:#fff!important;color:var(--accent)!important;border:2px solid #f7b6cb!important;box-shadow:none!important}
+  .hide{display:none!important}
+
+  /* ===== ورد ===== */
+  .garden{position:fixed;left:0;right:0;bottom:0;height:130px;z-index:3;pointer-events:none}
+  .flower{
+    position:absolute;bottom:-10px;transform-origin:bottom center;
+    transform:scale(0);animation:grow 1.6s cubic-bezier(.2,1.4,.4,1) forwards;
+    filter:drop-shadow(0 4px 6px rgba(122,31,61,.25));
+  }
+  .flower::after{ /* ساق */
+    content:"";position:absolute;left:50%;top:70%;width:4px;height:90px;
+    background:linear-gradient(#5aa469,#2f7a46);border-radius:4px;transform:translateX(-50%);z-index:-1;
+  }
+  @keyframes grow{to{transform:scale(1)}}
+  .sway{animation:grow 1.6s cubic-bezier(.2,1.4,.4,1) forwards, sway 4s ease-in-out 1.6s infinite alternate}
+  @keyframes sway{from{rotate:-4deg}to{rotate:4deg}}
+
+  .fall{
+    position:fixed;top:-40px;z-index:4;pointer-events:none;opacity:.85;
+    animation:fall linear forwards;
+  }
+  @keyframes fall{to{transform:translateY(112vh) translateX(var(--dx)) rotate(540deg);opacity:.2}}
+  .rise{
+    position:fixed;bottom:-30px;z-index:4;pointer-events:none;color:var(--accent);opacity:.6;
+    animation:rise linear forwards;
+  }
+  @keyframes rise{to{transform:translateY(-112vh) rotate(25deg);opacity:0}}
+</style>
+</head>
+<body>
+
+<!-- الأنيميشن اللي بيشتغل أول ما تدخل -->
+<div id="intro">
+  <div class="big">♥</div>
+  <div class="typed" id="typed"></div>
+</div>
+
+<div class="stage">
+  <main class="card" id="card">
+
+    <!-- القفل -->
+    <section id="lock">
+      <div class="heart">♥</div>
+      <h1>حبيبة قلبي 🌹</h1>
+      <p class="hint">اكتبي الكلمة السرية</p>
+      <input id="word" type="text" autocomplete="off" placeholder="••••••" />
+      <button id="unlock">💕 افتحي 💕</button>
+      <div class="err" id="err"></div>
+    </section>
+
+    <!-- بعد الفتح -->
+    <section id="secret">
+      <div class="heart">♥</div>
+      <div id="lines"></div>
+      <button id="next">📸 ذكرياتنا وعدّاد حبنا 💞</button>
+    </section>
+
+    <!-- الذكريات والعدّاد -->
+    <section id="memories">
+      <div class="heart">♥</div>
+      <h2>حكايتنا 🌹</h2>
+      <div class="dates">
+         6 أكتوبر 2026: أول مرة قلتلك بحبك<br>
+        💞 20 أكتوبر 2026: اعترفتيلي بحبك
+      </div>
+
+      <div class="counter" id="counter">
+        <div class="unit"><b id="cY">0</b><span>سنة</span></div>
+        <div class="unit"><b id="cD">0</b><span>يوم</span></div>
+        <div class="unit"><b id="cH">0</b><span>ساعة</span></div>
+        <div class="unit"><b id="cM">0</b><span>دقيقة</span></div>
+        <div class="unit"><b id="cS">0</b><span>ثانية</span></div>
+      </div>
+      <div class="since">من يوم 19 أكتوبر 2026 الساعة 11:49 مساءً ❤</div>
+
+      <h2>ذكرياتنا عاوزين نبقا نملها بقي 📸</h2>
+      <div class="since">دوسي على أي مربع وحطي صورة وكلمة حلوة</div>
+      <div class="grid" id="grid"></div>
+
+      <div class="row">
+        <button id="addTile" class="ghost">＋ مربع جديد</button>
+        <button id="back" class="ghost">⬅ رجوع</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="garden" id="garden"></div>
+
+<script>
+  /* ================= عدّل من هنا ================= */
+  const SECRET_WORD = "بحبك";
+
+  const INTRO_TEXT = "في حد بيحبك أوي... 💕";
+
+  // type: big = سطر كبير وملوّن
+  const LINES = [
+    { t: "بحبك ❤", type: "big" },
+    { t: "إنتي أحلى حاجة حصلتلي في الدنيا." },
+    { t: "ضحكتك بتنوّر يومي كله، وصوتك بيهدّيني أكتر من أي حاجة." },
+    { t: "معاكي بحس إن الدنيا أبسط وأجمل، وإن كل حاجة هتبقى كويسة." },
+    { t: "مش بقول كتير، بس إنتي في بالي في كل لحظة." },
+    { t: "ربنا يخليكي ليا ويخلّيني ليكي، ونفضل مع بعض دايمًا. 🌷" },
+    { t: "إنتي حبيبتي وصاحبتي وكل حاجة حلوة. ❤", type: "big" }
+  ];
+  /* =============================================== */
+
+  const $ = id => document.getElementById(id);
+  const FLOWERS = ["🌹","🌸","🌷","💐","🌺","🌼"];
+  const PETALS  = ["🌸","🌹","💮","🏵️","🌺"];
+
+  // تجاهل التشكيل والمسافات و ة/ه علشان الكتابة تتقبل بسهولة
+  const norm = s => s.replace(/[\u064B-\u065F\u0640\s]/g,"")
+                     .replace(/[أإآ]/g,"ا").replace(/ى/g,"ي").toLowerCase();
+
+  /* ---------- أنيميشن البداية ---------- */
+  function typeIntro(){
+    const el = $("typed"); let i = 0;
+    const t = setInterval(()=>{
+      el.textContent = INTRO_TEXT.slice(0, ++i);
+      if(i >= INTRO_TEXT.length){ clearInterval(t); setTimeout(endIntro, 1200); }
+    }, 90);
+    // ورد بيتفتح خلال البداية
+    for(let i=0;i<10;i++) setTimeout(plantFlower, i*180);
+  }
+  function endIntro(){
+    $("intro").classList.add("done");
+    $("card").classList.add("show");
+    for(let i=0;i<14;i++) setTimeout(plantFlower, i*120);
+    $("word").focus({preventScroll:true});
+  }
+
+  /* ---------- الورد ---------- */
+  function plantFlower(){
+    const g = $("garden");
+    const f = document.createElement("div");
+    f.className = "flower" + (Math.random()>.4 ? " sway" : "");
+    f.textContent = FLOWERS[Math.floor(Math.random()*FLOWERS.length)];
+    f.style.left = (Math.random()*96) + "vw";
+    f.style.fontSize = (34 + Math.random()*34) + "px";
+    f.style.animationDelay = (Math.random()*.3) + "s";
+    g.appendChild(f);
+    if(g.children.length > 46) g.firstChild.remove();
+  }
+  function petal(){
+    const p = document.createElement("div");
+    p.className = "fall";
+    p.textContent = PETALS[Math.floor(Math.random()*PETALS.length)];
+    p.style.left = Math.random()*100 + "vw";
+    p.style.fontSize = (14 + Math.random()*18) + "px";
+    p.style.setProperty("--dx", (Math.random()*120-60) + "px");
+    p.style.animationDuration = (6 + Math.random()*5) + "s";
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(), 11000);
+  }
+  function floatHeart(){
+    const h = document.createElement("div");
+    h.className = "rise";
+    h.textContent = ["♥","❤","💕"][Math.floor(Math.random()*3)];
+    h.style.left = Math.random()*100 + "vw";
+    h.style.fontSize = (16 + Math.random()*24) + "px";
+    h.style.animationDuration = (5 + Math.random()*5) + "s";
+    document.body.appendChild(h);
+    setTimeout(()=>h.remove(), 10000);
+  }
+  setInterval(petal, 700);
+  setInterval(floatHeart, 900);
+
+  /* ---------- فتح الرسالة ---------- */
+  function showLines(){
+    const box = $("lines"); box.innerHTML = "";
+    $("next").style.display = "none";
+    LINES.forEach((l,i)=>{
+      const p = document.createElement("p");
+      p.textContent = l.t;
+      if(l.type === "big") p.className = "big";
+      p.style.animationDelay = (i*1.4 + .3) + "s";
+      box.appendChild(p);
+    });
+    setTimeout(()=>{ $("next").style.display = "block"; }, LINES.length*1400 + 600);
+  }
+
+  function tryUnlock(){
+    if(norm($("word").value) === norm(SECRET_WORD)){
+      $("lock").classList.add("hide");
+      $("secret").style.display = "block";
+      showLines();
+      for(let i=0;i<30;i++){ setTimeout(plantFlower, i*90); setTimeout(petal, i*70); setTimeout(floatHeart, i*110); }
+    }else{
+      $("err").textContent = "مش دي الكلمةياتوتي تاني";
+      const c = $("card");
+      c.classList.remove("shake"); void c.offsetWidth; c.classList.add("shake");
+    }
+  }
+
+  $("unlock").addEventListener("click", tryUnlock);
+  $("word").addEventListener("keydown", e => { if(e.key === "Enter") tryUnlock(); });
+  /* ---------- العدّاد ---------- */
+  // 19 أكتوبر 2026 الساعة 11:49 مساءً بتوقيت القاهرة
+  const START = new Date("2026-10-19T23:49:00+03:00");
+  function tick(){
+    let s = Math.floor((Date.now() - START.getTime())/1000);
+    if(s < 0) s = 0;
+    const totalDays = Math.floor(s/86400);
+    $("cY").textContent = Math.floor(totalDays/365);
+    $("cD").textContent = totalDays % 365;
+    $("cH").textContent = Math.floor(s/3600) % 24;
+    $("cM").textContent = Math.floor(s/60) % 60;
+    $("cS").textContent = s % 60;
+  }
+  setInterval(tick, 1000); tick();
+
+  /* ---------- مربعات الذكريات ---------- */
+  const KEY = "our_memories_v1";
+  let tiles = [];
+  try{ tiles = JSON.parse(localStorage.getItem(KEY)) || []; }catch(e){}
+  if(!tiles.length) tiles = Array.from({length:9}, () => ({img:"", cap:""}));
+
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify(tiles)); }
+    catch(e){ alert("المساحة امتلت، جرّب صور أصغر 🙏"); }
+  }
+
+  function shrink(file, cb){
+    const r = new FileReader();
+    r.onload = () => {
+      const im = new Image();
+      im.onload = () => {
+        const max = 600, k = Math.min(1, max/Math.max(im.width, im.height));
+        const c = document.createElement("canvas");
+        c.width = im.width*k; c.height = im.height*k;
+        c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+        cb(c.toDataURL("image/jpeg", .8));
+      };
+      im.src = r.result;
+    };
+    r.readAsDataURL(file);
+  }
+
+  function renderGrid(){
+    const g = $("grid"); g.innerHTML = "";
+    tiles.forEach((t, i) => {
+      const d = document.createElement("div");
+      d.className = "tile" + (t.img ? " filled" : "");
+      if(t.img) d.style.backgroundImage = `url(${t.img})`;
+
+      const plus = document.createElement("span");
+      plus.className = "plus"; plus.textContent = "＋";
+
+      const file = document.createElement("input");
+      file.type = "file"; file.accept = "image/*"; file.style.display = "none";
+      file.addEventListener("change", () => {
+        if(file.files[0]) shrink(file.files[0], url => { tiles[i].img = url; save(); renderGrid(); });
+      });
+      file.addEventListener("click", e => e.stopPropagation());
+
+      const cap = document.createElement("input");
+      cap.className = "cap"; cap.type = "text"; cap.placeholder = "اكتبي ذكرى...";
+      cap.value = t.cap || "";
+      cap.addEventListener("click", e => e.stopPropagation());
+      cap.addEventListener("input", () => { tiles[i].cap = cap.value; save(); });
+
+      const x = document.createElement("button");
+      x.className = "x"; x.textContent = "✕";
+      x.addEventListener("click", e => {
+        e.stopPropagation();
+        tiles[i] = {img:"", cap:""}; save(); renderGrid();
+      });
+
+      d.addEventListener("click", () => file.click());
+      d.append(plus, file, cap, x);
+      g.appendChild(d);
+    });
+  }
+  renderGrid();
+
+  $("addTile").addEventListener("click", () => {
+    tiles.push({img:"", cap:""}); save(); renderGrid();
+  });
+
+  function show(view){
+    $("secret").style.display   = view === "lines" ? "block" : "none";
+    $("memories").style.display = view === "mem"   ? "block" : "none";
+    $("card").classList.toggle("wide", view === "mem");
+    $("card").scrollTop = 0;
+  }
+  $("next").addEventListener("click", () => {
+    show("mem");
+    for(let i=0;i<20;i++){ setTimeout(plantFlower, i*90); setTimeout(petal, i*80); }
+  });
+  $("back").addEventListener("click", () => show("lines"));
+
+  window.addEventListener("load", typeIntro);
+</script>
+</body>
+</html>
