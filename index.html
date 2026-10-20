@@ -133,6 +133,14 @@
   .row{display:flex;gap:10px;margin-top:16px}
   .row button{margin-top:0;font-size:17px}
   .ghost{background:#fff!important;color:var(--accent)!important;border:2px solid #f7b6cb!important;box-shadow:none!important}
+  .cloud-auth{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+  .cloud-auth input{min-width:0;padding:9px 10px;font-size:15px;border-width:1px;border-radius:12px}
+  .cloud-auth button{grid-column:span 2;margin:0;padding:9px;font-size:16px}
+  .cloud-auth button.hide{display:none!important}
+  .save-button{margin-top:12px}
+  .save-button:disabled{opacity:.55;cursor:wait}
+  .cloud-status{min-height:24px;margin-top:10px;font-size:15px;line-height:1.5}
+  @media(max-width:430px){.cloud-auth{grid-template-columns:1fr}.cloud-auth button{grid-column:auto}}
   .hide{display:none!important}
 
   /* ===== ورد ===== */
@@ -212,6 +220,7 @@
       <div class="since">دوسي على أي مربع وحطي صورة وكلمة حلوة</div>
       <div class="grid" id="grid"></div>
 
+        <p class="cloud-status" id="cloudStatus" role="status" aria-live="polite"></p>
       <div class="row">
         <button id="addTile" class="ghost">＋ مربع جديد</button>
         <button id="back" class="ghost">⬅ رجوع</button>
@@ -223,6 +232,7 @@
 
 <div class="garden" id="garden"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   /* ================= عدّل من هنا ================= */
   const SECRET_WORD = "بحبك";
@@ -346,73 +356,135 @@
   }
   setInterval(tick, 1000); tick();
 
-  /* ---------- مربعات الذكريات ---------- */
-  const KEY = "our_memories_v1";
-  let tiles = [];
-  try{ tiles = JSON.parse(localStorage.getItem(KEY)) || []; }catch(e){}
-  if(!tiles.length) tiles = Array.from({length:9}, () => ({img:"", cap:""}));
+/* ---------- مربعات الذكريات (Supabase) ---------- */
+const SUPABASE_URL = "https://itxytoyfqspahfwfkagc.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_EFIjZ3xLMdhf-o4-Rq1J1w_OxDLJqgP";
+const BUCKET = "memory-photos";
+const cloud = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  function save(){
-    try{ localStorage.setItem(KEY, JSON.stringify(tiles)); }
-    catch(e){ alert("المساحة امتلت، جرّب صور أصغر 🙏"); }
-  }
+let tiles = [];
+let busy = 0;
+const capTimers = {};
+const emptyTile = () => ({id:null, path:"", img:"", cap:""});
+const urlOf = p => cloud.storage.from(BUCKET).getPublicUrl(p).data.publicUrl;
+const setStatus = m => { $("cloudStatus").textContent = m; };
 
-  function shrink(file, cb){
-    const r = new FileReader();
-    r.onload = () => {
-      const im = new Image();
-      im.onload = () => {
-        const max = 600, k = Math.min(1, max/Math.max(im.width, im.height));
+function shrink(file){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("تعذر قراءة الصورة"));
+    reader.onload = () => {
+      const image = new Image();
+      image.onerror = () => reject(new Error("الملف ليس صورة صالحة"));
+      image.onload = () => {
+        const max = 900, k = Math.min(1, max/Math.max(image.width,image.height));
         const c = document.createElement("canvas");
-        c.width = im.width*k; c.height = im.height*k;
-        c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
-        cb(c.toDataURL("image/jpeg", .8));
+        c.width = Math.round(image.width*k); c.height = Math.round(image.height*k);
+        c.getContext("2d").drawImage(image,0,0,c.width,c.height);
+        resolve(c.toDataURL("image/jpeg",.82));
       };
-      im.src = r.result;
+      image.src = reader.result;
     };
-    r.readAsDataURL(file);
-  }
-
-  function renderGrid(){
-    const g = $("grid"); g.innerHTML = "";
-    tiles.forEach((t, i) => {
-      const d = document.createElement("div");
-      d.className = "tile" + (t.img ? " filled" : "");
-      if(t.img) d.style.backgroundImage = `url(${t.img})`;
-
-      const plus = document.createElement("span");
-      plus.className = "plus"; plus.textContent = "＋";
-
-      const file = document.createElement("input");
-      file.type = "file"; file.accept = "image/*"; file.style.display = "none";
-      file.addEventListener("change", () => {
-        if(file.files[0]) shrink(file.files[0], url => { tiles[i].img = url; save(); renderGrid(); });
-      });
-      file.addEventListener("click", e => e.stopPropagation());
-
-      const cap = document.createElement("input");
-      cap.className = "cap"; cap.type = "text"; cap.placeholder = "اكتبي ذكرى...";
-      cap.value = t.cap || "";
-      cap.addEventListener("click", e => e.stopPropagation());
-      cap.addEventListener("input", () => { tiles[i].cap = cap.value; save(); });
-
-      const x = document.createElement("button");
-      x.className = "x"; x.textContent = "✕";
-      x.addEventListener("click", e => {
-        e.stopPropagation();
-        tiles[i] = {img:"", cap:""}; save(); renderGrid();
-      });
-
-      d.addEventListener("click", () => file.click());
-      d.append(plus, file, cap, x);
-      g.appendChild(d);
-    });
-  }
-  renderGrid();
-
-  $("addTile").addEventListener("click", () => {
-    tiles.push({img:"", cap:""}); save(); renderGrid();
+    reader.readAsDataURL(file);
   });
+}
+
+async function pickImage(tile, file){
+  busy++; setStatus("جاري رفع الصورة...");
+  try{
+    const blob = await (await fetch(await shrink(file))).blob();
+    const path = crypto.randomUUID() + ".jpg";
+    let r = await cloud.storage.from(BUCKET).upload(path, blob, {contentType:"image/jpeg"});
+    if(r.error) throw r.error;
+    const oldPath = tile.path, id = tile.id || crypto.randomUUID();
+    r = await cloud.from("memories").upsert({id, image_path:path, caption:tile.cap||""});
+    if(r.error) throw r.error;
+    Object.assign(tile, {id, path, img:urlOf(path)});
+    if(oldPath) await cloud.storage.from(BUCKET).remove([oldPath]);
+    setStatus("اتحفظت ✅ وهتظهر عند التاني");
+  }catch(e){ setStatus("تعذر الرفع: " + e.message); }
+  finally{ busy--; renderGrid(); }
+}
+
+function saveCaption(tile){
+  if(!tile.id) return;
+  clearTimeout(capTimers[tile.id]);
+  capTimers[tile.id] = setTimeout(async()=>{
+    const {error} = await cloud.from("memories").update({caption:tile.cap}).eq("id",tile.id);
+    if(error) setStatus("تعذر حفظ الكلام: " + error.message);
+  }, 700);
+}
+
+async function removeTile(i){
+  const t = tiles[i];
+  if(!confirm("تمسحي الصورة دي؟")) return;
+  busy++;
+  try{
+    if(t.id){
+      const {error} = await cloud.from("memories").delete().eq("id",t.id);
+      if(error) throw error;
+    }
+    if(t.path) await cloud.storage.from(BUCKET).remove([t.path]);
+    tiles[i] = emptyTile();
+  }catch(e){ setStatus("تعذر المسح: " + e.message); }
+  finally{ busy--; renderGrid(); }
+}
+
+function renderGrid(){
+  const grid = $("grid"); grid.innerHTML = "";
+  tiles.forEach((tile,i)=>{
+    const item = document.createElement("div");
+    item.className = "tile" + (tile.img ? " filled" : "");
+    if(tile.img) item.style.backgroundImage = `url("${tile.img}")`;
+
+    const plus = document.createElement("span"); plus.className = "plus"; plus.textContent = "＋";
+
+    const file = document.createElement("input");
+    file.type = "file"; file.accept = "image/*"; file.style.display = "none";
+    file.addEventListener("change", () => { if(file.files[0]) pickImage(tile, file.files[0]); });
+    file.addEventListener("click", e => e.stopPropagation());
+
+    const cap = document.createElement("input");
+    cap.className = "cap"; cap.type = "text"; cap.placeholder = "اكتبي ذكرى..."; cap.value = tile.cap || "";
+    cap.addEventListener("click", e => e.stopPropagation());
+    cap.addEventListener("input", () => { tile.cap = cap.value; saveCaption(tile); });
+
+    const x = document.createElement("button");
+    x.className = "x"; x.type = "button"; x.textContent = "✕";
+    x.addEventListener("click", e => { e.stopPropagation(); removeTile(i); });
+
+    item.addEventListener("click", () => file.click());
+    item.append(plus, file, cap, x);
+    grid.appendChild(item);
+  });
+}
+
+const sig = list => JSON.stringify(list.map(t => [t.id, t.path, t.cap]));
+
+async function loadMemories(first){
+  const {data, error} = await cloud.from("memories")
+    .select("id,image_path,caption,created_at").order("created_at");
+  if(error){
+    if(first){ tiles = Array.from({length:9}, emptyTile); renderGrid(); }
+    setStatus("تعذر تحميل الصور. راجع إعدادات Supabase.");
+    return;
+  }
+  const real = data.map(r => ({id:r.id, path:r.image_path, img:urlOf(r.image_path), cap:r.caption||""}));
+  if(!first && sig(real) === sig(tiles.filter(t => t.id))) return;
+  const empties = first ? 0 : tiles.filter(t => !t.id).length;
+  tiles = [...real, ...Array.from({length:Math.max(0, 9 - real.length, empties)}, emptyTile)];
+  renderGrid();
+  if(first) setStatus("دوسي على أي مربع وحطي صورة، وهتتحفظ لوحدها 💞");
+}
+
+$("addTile").addEventListener("click", () => { tiles.push(emptyTile()); renderGrid(); });
+
+loadMemories(true);
+setInterval(() => {
+  const a = document.activeElement;
+  if(busy || (a && a.classList && a.classList.contains("cap"))) return;
+  loadMemories(false);
+}, 15000);
 
   function show(view){
     $("secret").style.display   = view === "lines" ? "block" : "none";
