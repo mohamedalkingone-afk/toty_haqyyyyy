@@ -1,5 +1,5 @@
 /* ================= عدّل من هنا ================= */
-  const SECRET_WORD = "بحبك";
+  const SECRET_WORD = "لولتي";
 
   const INTRO_TEXT = "في حد بيحبك أوي... 💕";
 
