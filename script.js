@@ -1,5 +1,5 @@
 /* ================= عدّل من هنا ================= */
-  const SECRET_WORD = "لولتي";
+  const SECRET_WORD = "بحبك";
 
   const INTRO_TEXT = "في حد بيحبك أوي... 💕";
 
@@ -237,15 +237,28 @@ function renderGrid(){
     cap.addEventListener("click", e => e.stopPropagation());
     cap.addEventListener("input", () => { tile.cap = cap.value; saveCaption(tile); });
 
+    const chg = document.createElement("button");
+    chg.className = "chg"; chg.type = "button"; chg.textContent = "✎"; chg.title = "تغيير الصورة";
+    chg.addEventListener("click", e => { e.stopPropagation(); file.click(); });
+
     const x = document.createElement("button");
     x.className = "x"; x.type = "button"; x.textContent = "✕";
     x.addEventListener("click", e => { e.stopPropagation(); removeTile(i); });
 
-    item.addEventListener("click", () => file.click());
-    item.append(plus, file, cap, x);
+    item.addEventListener("click", () => { tile.img ? openLightbox(tile) : file.click(); });
+    item.append(plus, file, cap, chg, x);
     grid.appendChild(item);
   });
 }
+
+function openLightbox(tile){
+  $("lbImg").src = tile.img;
+  $("lbCap").textContent = tile.cap || "";
+  $("lightbox").classList.add("open");
+}
+function closeLightbox(){ $("lightbox").classList.remove("open"); $("lbImg").removeAttribute("src"); }
+$("lightbox").addEventListener("click", e => { if(e.target.id !== "lbImg") closeLightbox(); });
+document.addEventListener("keydown", e => { if(e.key === "Escape") closeLightbox(); });
 
 const sig = list => JSON.stringify(list.map(t => [t.id, t.path, t.cap]));
 
