@@ -1,5 +1,5 @@
 /* ================= عدّل من هنا ================= */
-  const SECRET_WORD = "بحبك";
+  const SECRET_WORD = "لولتي";
 
   const INTRO_TEXT = "في حد بيحبك أوي... 💕";
 
@@ -293,10 +293,10 @@ setInterval(() => {
     { t: "أكتوبر بيودّعنا النهارده، وهيفضل أحلى شهر في السنة عندي، لأن فيه بدأت حكايتنا. 🧡" },
     { t: "في أكتوبر قلتلك بحبك، وفي أكتوبر قلتيلي بحبك… وبقى عندي أحلى ذكرى في الدنيا." },
     { t: "And Happy First Winter ❄️", cls: "big winter en-line" },
-    { t: "الشتا داخل علينا أول مرة مع بعض، وأنا مستني أمسك إيدك وأدفّيكي لما تبردي. 🧣" },
-    { t: "كوباية شاي سخنة، ومطرة حلوة، وأنا وإنتي… دي كل أمنيتي. ☕🌧️" },
+    { t: "الشتا داخل علينا أول مرة مع بعض، وأنا مستني أمسك إيدك وأدفّيكي لما تبردي." },
+    { t: "كوباية قهوه ، ومطرة حلوة، وأنا وإنتي… دي كل أمنيتي. " },
     { t: "ودّعنا الخريف بحبّك، وهنستقبل الشتا بحبّك أكتر. 💖" },
-    { t: "كل سنة وإنتي حبيبتي، ونفضل مع بعض في كل الفصول ❤", cls: "big love" }
+    { t: " كل سنة وإنتي حبيبتي والتوتي بتاعتيي، ونفضل مع بعض في كل الفصول وطول العمر ", cls: "big love" }
   ];
   const FLAKES = ["❄️","🍂","🍁","❄","🍂"];
   let currentView = "lines";
@@ -339,7 +339,25 @@ setInterval(() => {
     for(let i=0;i<20;i++){ setTimeout(plantFlower, i*90); setTimeout(petal, i*80); }
   });
   $("back").addEventListener("click", () => show("lines"));
-  $("happyBtn").addEventListener("click", () => { show("happy"); showHappy(); });
+  // بتتفتح 31 أكتوبر 2026 الساعة 11:59 مساءً بتوقيت القاهرة
+  const HAPPY_OPEN = new Date("2026-10-31T23:59:00+02:00");
+  const happyLocked = () => Date.now() < HAPPY_OPEN.getTime();
+  function syncHappyBtn(){
+    const locked = happyLocked();
+    $("happyBtn").textContent = locked ? "🔒 Happy Message 💌" : "💌 Happy Message 🍂❄️";
+    if(!locked) $("hErr").textContent = "";
+  }
+  setInterval(syncHappyBtn, 1000); syncHappyBtn();
+
+  $("happyBtn").addEventListener("click", () => {
+    if(happyLocked()){
+      $("hErr").textContent = "مش دلوقتي يا توتي 🙈 لسه شوية، هتتفتح 11:59 بليل 🌙";
+      const c = $("card");
+      c.classList.remove("shake"); void c.offsetWidth; c.classList.add("shake");
+      return;
+    }
+    show("happy"); showHappy();
+  });
   $("hBack").addEventListener("click", () => show("lines"));
 
   window.addEventListener("load", typeIntro);
