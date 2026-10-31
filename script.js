@@ -5,14 +5,13 @@
 
   // type: big = سطر كبير وملوّن
   const LINES = [
-    { t: " بعشقك وبموت فيكي بحبككككككك ❤", type: "big" },
+    { t: "بحبك ❤", type: "big" },
     { t: "إنتي أحلى حاجة حصلتلي في الدنيا." },
     { t: "ضحكتك بتنوّر يومي كله، وصوتك بيهدّيني أكتر من أي حاجة." },
     { t: "معاكي بحس إن الدنيا أبسط وأجمل، وإن كل حاجة هتبقى كويسة." },
     { t: "مش بقول كتير، بس كل يوم بحبك أكتر من اليوم اللي قبله. 💖" },
     { t: "ربنا يخليكي ليا ويخلّيني ليكي، ونفضل مع بعض دايمًا. 🌷" },
-    { t: "،  وهفضل احاول علي شانك علي شان نفضل مع بعض. 🌷" },
-    { t: "إنتي حبيبتي وكانزايتي مراتي و حياتي وصاحبتي وكل حاجة بحيها. ❤", type: "big" }
+    { t: "إنتي حبيبتي وكانزايتي وعيوني و حياتي وصاحبتي وكل حاجة بحيها. ❤", type: "big" }
   ];
   /* =============================================== */
 
@@ -103,7 +102,7 @@ function startSong(){ player.classList.add("show"); song.play().catch(()=>{}); }
   /* ---------- فتح الرسالة ---------- */
   function showLines(){
     const box = $("lines"); box.innerHTML = "";
-    $("next").style.display = "none";
+    $("next").style.display = "none"; $("happyBtn").style.display = "none";
     LINES.forEach((l,i)=>{
       const p = document.createElement("p");
       p.textContent = l.t;
@@ -111,7 +110,7 @@ function startSong(){ player.classList.add("show"); song.play().catch(()=>{}); }
       p.style.animationDelay = (i*1.4 + .3) + "s";
       box.appendChild(p);
     });
-    setTimeout(()=>{ $("next").style.display = "block"; }, LINES.length*1400 + 600);
+    setTimeout(()=>{ $("next").style.display = "block"; $("happyBtn").style.display = "block"; }, LINES.length*1400 + 600);
   }
 
   function tryUnlock(){
@@ -275,7 +274,48 @@ setInterval(() => {
   loadMemories(false);
 }, 15000);
 
+  /* ---------- Happy Message ---------- */
+  const HAPPY_LINES = [
+    { t: "Happy End of October 🍂", cls: "big autumn en-line" },
+    { t: "أكتوبر بيودّعنا النهارده، وهيفضل أحلى شهر في السنة عندي، لأن فيه بدأت حكايتنا. 🧡" },
+    { t: "في أكتوبر قلتلك بحبك، وفي أكتوبر قلتيلي بحبك… وبقى عندي أحلى ذكرى في الدنيا." },
+    { t: "And Happy First Winter ❄️", cls: "big winter en-line" },
+    { t: "الشتا داخل علينا أول مرة مع بعض، وأنا مستني أمسك إيدك وأدفّيكي لما تبردي. 🧣" },
+    { t: "كوباية شاي سخنة، ومطرة حلوة، وأنا وإنتي… دي كل أمنيتي. ☕🌧️" },
+    { t: "ودّعنا الخريف بحبّك، وهنستقبل الشتا بحبّك أكتر. 💖" },
+    { t: "كل سنة وإنتي حبيبتي، ونفضل مع بعض في كل الفصول ❤", cls: "big love" }
+  ];
+  const FLAKES = ["❄️","🍂","🍁","❄","🍂"];
+  let currentView = "lines";
+  function flake(){
+    const f = document.createElement("div");
+    f.className = "fall";
+    f.textContent = FLAKES[Math.floor(Math.random()*FLAKES.length)];
+    f.style.left = Math.random()*100 + "vw";
+    f.style.fontSize = (14 + Math.random()*20) + "px";
+    f.style.setProperty("--dx", (Math.random()*160-80) + "px");
+    f.style.animationDuration = (7 + Math.random()*5) + "s";
+    document.body.appendChild(f);
+    setTimeout(()=>f.remove(), 12000);
+  }
+  setInterval(() => { if(currentView === "happy") flake(); }, 350);
+
+  function showHappy(){
+    const box = $("hLines"); box.innerHTML = "";
+    HAPPY_LINES.forEach((l,i)=>{
+      const p = document.createElement("p");
+      p.textContent = l.t;
+      if(l.cls) p.className = l.cls;
+      p.style.animationDelay = (i*1.3 + .3) + "s";
+      box.appendChild(p);
+    });
+    for(let i=0;i<30;i++) setTimeout(flake, i*100);
+    for(let i=0;i<10;i++) setTimeout(plantFlower, i*120);
+  }
+
   function show(view){
+    currentView = view;
+    $("happy").style.display    = view === "happy" ? "block" : "none";
     $("secret").style.display   = view === "lines" ? "block" : "none";
     $("memories").style.display = view === "mem"   ? "block" : "none";
     $("card").classList.toggle("wide", view === "mem");
@@ -286,5 +326,7 @@ setInterval(() => {
     for(let i=0;i<20;i++){ setTimeout(plantFlower, i*90); setTimeout(petal, i*80); }
   });
   $("back").addEventListener("click", () => show("lines"));
+  $("happyBtn").addEventListener("click", () => { show("happy"); showHappy(); });
+  $("hBack").addEventListener("click", () => show("lines"));
 
   window.addEventListener("load", typeIntro);
