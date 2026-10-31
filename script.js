@@ -148,7 +148,7 @@ function startSong(){ player.classList.add("show"); song.play().catch(()=>{}); }
 const SUPABASE_URL = "https://itxytoyfqspahfwfkagc.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_EFIjZ3xLMdhf-o4-Rq1J1w_OxDLJqgP";
 const BUCKET = "memory-photos";
-const cloud = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const cloud = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 let tiles = [];
 let busy = 0;
@@ -280,12 +280,17 @@ async function loadMemories(first){
 
 $("addTile").addEventListener("click", () => { tiles.push(emptyTile()); renderGrid(); });
 
-loadMemories(true);
-setInterval(() => {
-  const a = document.activeElement;
-  if(busy || (a && a.classList && a.classList.contains("cap"))) return;
-  loadMemories(false);
-}, 15000);
+if(cloud){
+  loadMemories(true);
+  setInterval(() => {
+    const a = document.activeElement;
+    if(busy || (a && a.classList && a.classList.contains("cap"))) return;
+    loadMemories(false);
+  }, 15000);
+}else{
+  tiles = Array.from({length:9}, emptyTile); renderGrid();
+  setStatus("تعذر الاتصال بـ Supabase. اتأكدي من النت وحدّثي الصفحة.");
+}
 
   /* ---------- Happy Message ---------- */
   const HAPPY_LINES = [
@@ -339,6 +344,7 @@ setInterval(() => {
     for(let i=0;i<20;i++){ setTimeout(plantFlower, i*90); setTimeout(petal, i*80); }
   });
   $("back").addEventListener("click", () => show("lines"));
+  $("happyBtn").addEventListener("click", () => { show("happy"); showHappy(); });
  
   $("hBack").addEventListener("click", () => show("lines"));
 
