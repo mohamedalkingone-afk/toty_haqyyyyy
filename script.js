@@ -292,47 +292,125 @@ if(cloud){
   setStatus("تعذر الاتصال بـ Supabase. اتأكدي من النت وحدّثي الصفحة.");
 }
 
-  /* ---------- Happy Message ---------- */
-  const HAPPY_LINES = [
-    { t: "Happy End of October 🍂", cls: "big autumn en-line" },
-    { t: "أكتوبر بيودّعنا النهارده، وهيفضل أحلى شهر في السنة عندي، لأن فيه بدأت حكايتنا. 🧡" },
-    { t: "في أكتوبر قلتلك بحبك، وفي أكتوبر قلتيلي بحبك… وبقى عندي أحلى ذكرى في الدنيا." },
-    { t: "And Happy First Winter ❄️", cls: "big winter en-line" },
-    { t: "الشتا داخل علينا أول مرة مع بعض، وأنا مستني أمسك إيدك وأدفّيكي لما تبردي." },
-    { t: "كوباية قهوه ، ومطرة حلوة، وأنا وإنتي… دي كل أمنيتي. " },
-    { t: "ودّعنا الخريف بحبّك، وهنستقبل الشتا بحبّك أكتر. 💖" },
-    { t: " كل سنة وإنتي حبيبتي والتوتي بتاعتيي، ونفضل مع بعض في كل الفصول وطول العمر ", cls: "big love" }
+  /* ---------- رسالة الصلح ---------- */
+  const HAPPY_LETTERS = [
+    { label: "أول حاجة",
+      lines: [
+        "أنا آسف.",
+        "مش عشان الموضوع يعدّي، ولا عشان نقفل الكلام. أنا آسف عشان زعلك وجعني أكتر مما تتخيلي.",
+        "وأي كلمة قلتها وجعتك، وأي لحظة حسّيتي فيها إني بعيد عنك، أنا شايل مسؤوليتها بالكامل."
+      ] },
+    { label: "عن الخناقة",
+      lines: [
+        "عارف إن الخناقة كانت كبيرة، ومش هقلل منها ومش هقولك خلاص انسي.",
+        "خدي وقتك كله، وأنا مستنيكي. مش مستعجل عليكي ولا ضاغط عليكي.",
+        "بس عايزك تعرفي إن قلبي مش مرتاح وإنتي زعلانة مني."
+      ] },
+    { label: "اللي جوايا ليكي",
+      lines: [
+        "أنا بحبك.",
+        "وده مش كلام بيتقال وقت الصلح وبس. الحب ده أكبر من أي خناقة، حتى لو كانت أكبر من كده.",
+        "لسه بحبك زي أول يوم قلتلك فيه بحبك، وأكتر."
+      ] },
+    { label: "وعدي",
+      lines: [
+        "أنا وعدتك، وأنا قد وعدي.",
+        "مش هسيبك مهما حصل ومهما اتغيرت الظروف.",
+        "لو الطريق وِحش في يوم، هنمشيه سوا بالراحة. أنا مش هتعب منك، ولا من حبك."
+      ] },
+    { label: "إنتي الأولي والأخيره",
+      lines: [
+        "إنتي حبي الأول، وهتفضلي حبي الأخير.",
+        "مفيش حد قبلك كان ليه مكان زي مكانك، ومفيش حد بعدك هيبقى ليه مكان.",
+        "اللي بيني وبينك أغلى عندي من إني أخسره، وعمري ما هفرّط فيه."
+      ] }
   ];
-  const FLAKES = ["❄️","🍂","🍁","❄","🍂"];
+  const HAPPY_FINALE = [
+    "لو قلبك فتحلي ولو شوية، أنا هنا.",
+    "ولو محتاجة وقت، أنا برضه هنا.",
+    "وفي الحالتين، بحبك، وهفضل أحبك."
+  ];
+  const AR_NUM = ["الأولى","التانية","التالتة","الرابعة","الخامسة"];
+  const LINE_GAP = 1.5;      // الفرق بين كل سطر والتاني بالثواني
   let currentView = "lines";
-  function flake(){
-    const f = document.createElement("div");
-    f.className = "fall";
-    f.textContent = FLAKES[Math.floor(Math.random()*FLAKES.length)];
-    f.style.left = Math.random()*100 + "vw";
-    f.style.fontSize = (14 + Math.random()*20) + "px";
-    f.style.setProperty("--dx", (Math.random()*160-80) + "px");
-    f.style.animationDuration = (7 + Math.random()*5) + "s";
-    document.body.appendChild(f);
-    setTimeout(()=>f.remove(), 12000);
+
+  function softDot(){
+    const d = document.createElement("div");
+    const s = 8 + Math.random()*22;
+    d.className = "soft";
+    d.style.left = Math.random()*100 + "vw";
+    d.style.setProperty("--s", s + "px");
+    d.style.setProperty("--dx", (Math.random()*100-50) + "px");
+    d.style.animationDuration = (11 + Math.random()*7) + "s";
+    document.body.appendChild(d);
+    setTimeout(()=>d.remove(), 19000);
   }
-  setInterval(() => { if(currentView === "happy") flake(); }, 350);
+  setInterval(() => { if(currentView === "happy") softDot(); }, 800);
+
+  function fillLines(target, lines, startDelay){
+    lines.forEach((t,i)=>{
+      const p = document.createElement("p");
+      p.textContent = t;
+      p.style.animationDelay = (startDelay + i*LINE_GAP) + "s";
+      target.appendChild(p);
+    });
+    return startDelay + lines.length*LINE_GAP;
+  }
 
   function showHappy(){
     const box = $("hLines"); box.innerHTML = "";
-    HAPPY_LINES.forEach((l,i)=>{
-      const p = document.createElement("p");
-      p.textContent = l.t;
-      if(l.cls) p.className = l.cls;
-      p.style.animationDelay = (i*1.3 + .3) + "s";
-      box.appendChild(p);
+    const envs = [];
+    const status = (env, txt) => { env.querySelector("small").textContent = txt; };
+
+    const finale = document.createElement("div");
+    finale.className = "finale";
+    finale.innerHTML = '<svg class="fheart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><div class="fbody"></div>';
+
+    HAPPY_LETTERS.forEach((L,i)=>{
+      const env = document.createElement("div");
+      env.className = "env" + (i ? " locked" : "");
+      env.innerHTML =
+        '<button type="button" class="env-btn">' +
+          '<span class="env-art"><span class="flap"></span><span class="seal"></span></span>' +
+          '<span class="env-label"><small></small><b></b></span>' +
+        '</button>' +
+        '<div class="paper"><div class="paper-in"><div class="paper-body"></div></div></div>';
+      env.querySelector("b").textContent = L.label;
+      status(env, i ? "بعد اللي قبلها" : "اضغطي وافتحي الرسالة " + AR_NUM[i]);
+      envs.push(env);
+      box.appendChild(env);
+
+      env.querySelector(".env-btn").addEventListener("click", () => {
+        if(env.classList.contains("locked") || env.classList.contains("open")) return;
+        env.classList.add("open");
+        status(env, "اقري على مهلك");
+        setTimeout(() => {
+          env.classList.add("show-paper");
+          const end = fillLines(env.querySelector(".paper-body"), L.lines, 0.9);
+          setTimeout(() => env.scrollIntoView({behavior:"smooth", block:"start"}), 500);
+          setTimeout(() => {
+            status(env, "اتفتحت");
+            const next = envs[i+1];
+            if(next){
+              next.classList.remove("locked");
+              status(next, "اضغطي وافتحي الرسالة " + AR_NUM[i+1]);
+              next.scrollIntoView({behavior:"smooth", block:"center"});
+            }else{
+              finale.classList.add("show");
+              fillLines(finale.querySelector(".fbody"), HAPPY_FINALE, 1.6);
+              setTimeout(() => finale.scrollIntoView({behavior:"smooth", block:"center"}), 600);
+            }
+          }, (end + 1.2) * 1000);
+        }, 1100);
+      });
     });
-    for(let i=0;i<30;i++) setTimeout(flake, i*100);
-    for(let i=0;i<10;i++) setTimeout(plantFlower, i*120);
+    box.appendChild(finale);
+    for(let i=0;i<8;i++) setTimeout(softDot, i*450);
   }
 
   function show(view){
     currentView = view;
+    document.body.classList.toggle("calm", view === "happy");
     $("happy").style.display    = view === "happy" ? "block" : "none";
     $("secret").style.display   = view === "lines" ? "block" : "none";
     $("memories").style.display = view === "mem"   ? "block" : "none";
