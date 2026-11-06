@@ -1,5 +1,4 @@
-/* ================= عدّل من هنا ================= */
-  const SECRET_WORD = "لولتي";
+const SECRET_WORD = "لولتي";
 
   const INTRO_TEXT = "في حد بيحبك أوي... 💕";
 
@@ -315,10 +314,10 @@ if(cloud){
     { label: "وعدي",
       lines: [
         "أنا وعدتك، وأنا قد وعدي.",
-        "مش هسيبك مهما حصل ومهما اتغيرت الظروف.",
+        "مش هسيبك، ومش هسيب إيدك مهما حصل ومهما اتغيرت الظروف.",
         "لو الطريق وِحش في يوم، هنمشيه سوا بالراحة. أنا مش هتعب منك، ولا من حبك."
       ] },
-    { label: "إنتي الأولي والأخيره",
+    { label: "إنتي الأول والأخير",
       lines: [
         "إنتي حبي الأول، وهتفضلي حبي الأخير.",
         "مفيش حد قبلك كان ليه مكان زي مكانك، ومفيش حد بعدك هيبقى ليه مكان.",
@@ -357,8 +356,8 @@ if(cloud){
     return startDelay + lines.length*LINE_GAP;
   }
 
-  function showHappy(){
-    const box = $("hLines"); box.innerHTML = "";
+  function buildLetters(box, letters, finaleLines){
+    box.innerHTML = "";
     const envs = [];
     const status = (env, txt) => { env.querySelector("small").textContent = txt; };
 
@@ -366,7 +365,7 @@ if(cloud){
     finale.className = "finale";
     finale.innerHTML = '<svg class="fheart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg><div class="fbody"></div>';
 
-    HAPPY_LETTERS.forEach((L,i)=>{
+    letters.forEach((L,i)=>{
       const env = document.createElement("div");
       env.className = "env" + (i ? " locked" : "");
       env.innerHTML =
@@ -397,7 +396,7 @@ if(cloud){
               next.scrollIntoView({behavior:"smooth", block:"center"});
             }else{
               finale.classList.add("show");
-              fillLines(finale.querySelector(".fbody"), HAPPY_FINALE, 1.6);
+              fillLines(finale.querySelector(".fbody"), finaleLines, 1.6);
               setTimeout(() => finale.scrollIntoView({behavior:"smooth", block:"center"}), 600);
             }
           }, (end + 1.2) * 1000);
@@ -405,8 +404,53 @@ if(cloud){
       });
     });
     box.appendChild(finale);
+  }
+
+  /* ---------- الرسالة اللي قبلها: أول خناقة ---------- */
+  const FIRST_LETTERS = [
+    { label: "أول خناقة",
+      lines: [
+        "دي كانت أول خناقة بينا.",
+        "ومن أول ما حصلت وأنا حاسس إن حاجة غالية وقعت من مكانها، وإن اللي بينا أكبر من إنه يتهز."
+      ] },
+    { label: "الساعة 1:19 بالليل",
+      lines: [
+        "في الساعة واحدة وتسعتاشر دقيقة بالليل سيبنا بعض.",
+        "الليل كان طويل أوي، ومعدّاش عليا ولا لحظة من غير ما أفكر فيكي.",
+        "كل ما أحاول أنام، كان بيرجعلي صوتك وضحكتك، وأفتكر إني مش عايز أبعد عنك."
+      ] },
+    { label: "الساعة 5:20 وقت المغرب",
+      lines: [
+        "ورجعنا لبعض الساعة خمسة وتلت، وقت المغرب.",
+        "حوالي ستاشر ساعة بس، بس حسيتها أطول من كده بكتير.",
+        "ومن أول ما رجعنا، الدنيا هديت جوايا ورجعت لمكانها."
+      ] },
+    { label: "اللي اتعلمته",
+      lines: [
+        "اتعلمت إن ساعات بعدك عني بتتقل أكتر من أي حاجة.",
+        "وإن أحلى جزء في أي خلاف هو لحظة الرجوع ليكي.",
+        "وإننا لو اختلفنا، قلوبنا بتعرف طريقها لبعض من غير ما حد فينا يتعب."
+      ] }
+  ];
+  const FIRST_FINALE = [
+    "أول خناقة عدّت، ورجعنا.",
+    "وأنا واثق إن حبنا قادر يرجّعنا دايمًا.",
+    "ومش عايز نبعد تاني، حتى لو اختلفنا."
+  ];
+
+  function showHappy(){
+    buildLetters($("hLines"),  HAPPY_LETTERS, HAPPY_FINALE);
+    buildLetters($("hLines2"), FIRST_LETTERS, FIRST_FINALE);
+    setTab("first");
     for(let i=0;i<8;i++) setTimeout(softDot, i*450);
   }
+  function setTab(which){
+    document.querySelectorAll(".tab").forEach(t => t.classList.toggle("on", t.dataset.tab === which));
+    $("paneFirst").style.display = which === "first" ? "block" : "none";
+    $("paneSulh").style.display  = which === "sulh"  ? "block" : "none";
+    $("card").scrollTop = 0;
+  }
+  document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => setTab(t.dataset.tab)));
 
   function show(view){
     currentView = view;
