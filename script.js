@@ -471,3 +471,86 @@ if(cloud){
   $("hBack").addEventListener("click", () => show("lines"));
 
   window.addEventListener("load", typeIntro);
+
+/* ===== Happy Message 11/11 =====
+   الصق الكود ده كله في آخر ملف script.js، ومفيش أي حاجة تانية تتعدل. */
+(function(){
+  const LETTERS = [
+    { label: "واحد وواحد",
+      lines: [
+        "الرقم واحد جنب الرقم واحد... زي إحنا بالظبط.",
+        "اتنين، بس كل واحد فينا بيكمّل التاني.",
+        "ومن غيرك أنا مجرد واحد وحيد، ومعاكي بقيت كامل."
+      ] },
+    { label: "أمنية",
+      lines: [
+        "بيقولوا إن 11/11 يوم الأمنيات.",
+        "وأنا مش هتمنى كتير. هتمنى بس إنك تفضلي جنبي، وإن قلبك يرتاح، وإن أي زعل بينا يعدّي ويسيبنا أقرب من الأول.",
+        "وأمنيتي دي، يا رب، تبقى أول حاجة تتحقق."
+      ] },
+    { label: "من أول الحكاية",
+      lines: [
+        "من يوم ما بدأت حكايتنا والدنيا بقت أهدى وأحلى في عيني.",
+        "مفيش يوم عدّى من غير ما أحمد ربنا إنك في حياتي، وإنك اخترتيني."
+      ] },
+    { label: "وعد جديد",
+      lines: [
+        "أوعدك إني أفضل أسمعك، وأفضل أصبر عليكي، وأفضل أختارك في كل مرة.",
+        "وعدي ليكي مش بيتغير بتغيّر اليوم ولا الظروف، وأنا قد وعدي."
+      ] }
+  ];
+  const FINALE = [
+    "اليوم ده مش هيعدّي عادي.",
+    "هيفضل عندي اليوم اللي قلتلك فيه بحبك من جديد.",
+    "بحبك النهارده، وبكرة، وكل يوم."
+  ];
+
+  const g = id => document.getElementById(id);
+  if(g("paneEleven")) return;               // علشان ميتضافش مرتين
+
+  /* --- الستايل --- */
+  const st = document.createElement("style");
+  st.textContent = `
+    .tabs .tab{font-size:15px;line-height:1.35;padding:9px 4px}
+    #paneEleven{display:none}
+    .elv{display:flex;align-items:center;justify-content:center;gap:14px;margin:4px 0 2px;direction:ltr}
+    .elv-n{font-size:64px;font-weight:700;line-height:1;color:var(--accent);
+      font-family:"Playfair Display",serif;font-style:italic;opacity:0;
+      text-shadow:0 8px 24px rgba(230,62,120,.35)}
+    .elv-r{animation:elvR 2.4s ease .3s forwards, elvGlow 5s ease-in-out 2.7s infinite}
+    .elv-l{animation:elvL 2.4s ease .3s forwards, elvGlow 5s ease-in-out 2.7s infinite}
+    @keyframes elvR{from{opacity:0;transform:translateX(-46px)}to{opacity:1;transform:none}}
+    @keyframes elvL{from{opacity:0;transform:translateX(46px)}to{opacity:1;transform:none}}
+    @keyframes elvGlow{0%,100%{text-shadow:0 8px 24px rgba(230,62,120,.3)}50%{text-shadow:0 8px 38px rgba(230,62,120,.65)}}
+    .elv-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);opacity:0;
+      animation:elvDot 1.6s ease 2.4s forwards, breathe 5s ease-in-out 4s infinite}
+    @keyframes elvDot{to{opacity:.8}}
+  `;
+  document.head.appendChild(st);
+
+  /* --- التاب الجديد والصفحة بتاعته --- */
+  const tab = document.createElement("button");
+  tab.type = "button"; tab.className = "tab"; tab.dataset.tab = "eleven";
+  tab.setAttribute("role","tab"); tab.textContent = "Happy Message 11/11";
+  document.querySelector(".tabs").appendChild(tab);
+  tab.addEventListener("click", () => setTab("eleven"));
+
+  const pane = document.createElement("div");
+  pane.id = "paneEleven";
+  pane.innerHTML =
+    '<div class="elv" aria-label="11 نوفمبر"><span class="elv-n elv-r">11</span><i class="elv-dot"></i><span class="elv-n elv-l">11</span></div>' +
+    '<div class="since hsub">واحد جنب واحد... إحنا</div><div id="hLines3"></div>';
+  g("paneSulh").after(pane);
+
+  /* --- ربطه بباقي الصفحة --- */
+  const _showHappy = showHappy;
+  showHappy = function(){
+    _showHappy();
+    buildLetters(g("hLines3"), LETTERS, FINALE);
+  };
+  const _setTab = setTab;
+  setTab = function(which){
+    _setTab(which);
+    pane.style.display = which === "eleven" ? "block" : "none";
+  };
+})();
