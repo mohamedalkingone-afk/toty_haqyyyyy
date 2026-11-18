@@ -505,7 +505,7 @@ if(cloud){
   ];
 
   const g = id => document.getElementById(id);
-  if(g("paneEleven")) return;               // علشان ميتضافش مرتين
+  if(window.__e1111) return; window.__e1111 = 1;   // علشان ميتضافش مرتين
 
   /* --- الستايل --- */
   const st = document.createElement("style");
@@ -527,7 +527,8 @@ if(cloud){
   `;
   document.head.appendChild(st);
 
-  /* --- التاب الجديد والصفحة بتاعته --- */
+  /* --- التاب الجديد والصفحة بتاعته (لو مش موجودين في الـ HTML) --- */
+  if(!g("paneEleven")){
   const tab = document.createElement("button");
   tab.type = "button"; tab.className = "tab"; tab.dataset.tab = "eleven";
   tab.setAttribute("role","tab"); tab.textContent = "Happy Message 11/11";
@@ -540,6 +541,8 @@ if(cloud){
     '<div class="elv" aria-label="11 نوفمبر"><span class="elv-n elv-r">11</span><i class="elv-dot"></i><span class="elv-n elv-l">11</span></div>' +
     '<div class="since hsub">واحد جنب واحد إحنا</div><div id="hLines3"></div>';
   g("paneSulh").after(pane);
+  }
+  const pane = g("paneEleven");
 
   /* --- ربطه بباقي الصفحة --- */
   const _showHappy = showHappy;
@@ -932,4 +935,82 @@ if(cloud){
           const sp = document.createElement("span"); sp.className = "w"; sp.textContent = w + " ";
           p.appendChild(sp); words.push(sp);
         });
-        box.a
+        box.appendChild(p);
+      });
+      words.forEach((sp, i) => later(() => sp.classList.add("in"), delay + i * 190));
+      const total = delay + words.length * 190 + 1200;
+      later(() => { letterDone = true; showNext(); }, total);
+      box.onclick = () => {
+        timers.forEach(clearTimeout); timers = [];
+        words.forEach(sp => sp.classList.add("in")); letterDone = true; showNext();
+      };
+    },
+    function(){                                   // 4 الفوانيس
+      lanCount = 0; $$("#moHint", mo).textContent = "اضغطي في أي مكان";
+    },
+    function(){                                   // 5 الختام
+      fxOn = true; nextFw = 0; later(launch, 200); later(launch, 700);
+      nextBtn.classList.remove("show");
+    }
+  ];
+
+  function go(n){
+    cur = n;
+    timers.forEach(clearTimeout); timers = [];
+    fxOn = false;
+    nextBtn.classList.remove("show");
+    scenes.forEach((s, i) => s.classList.toggle("act", i === n));
+    [...dots.children].forEach((d, i) => d.classList.toggle("on", i === n));
+    scenes[n].scrollTop = 0;
+    enter[n]();
+  }
+
+  nextBtn.addEventListener("click", () => { if(cur < scenes.length - 1) go(cur + 1); });
+  $$("#moAgain", mo).addEventListener("click", () => {
+    scenes[1].querySelectorAll(".stat,.mo-end").forEach(e => e.classList.remove("in"));
+    scenes[2].querySelectorAll(".ti").forEach(e => e.classList.remove("in"));
+    const sp = scenes[2].querySelector(".spine"); sp.style.transition = "none"; sp.style.transform = "scaleY(0)";
+    $$("#moPrg", mo).style.strokeDashoffset = "590.6";
+    go(0);
+  });
+
+  /* ضغطة في السما = فانوس */
+  mo.addEventListener("click", e => {
+    if(cur !== 4 || e.target.closest("button")) return;
+    const lan = document.createElement("div");
+    const x = Math.max(80, Math.min(innerWidth - 80, e.clientX)), y = e.clientY;
+    lan.className = "lan";
+    lan.style.left = x + "px"; lan.style.top = y + "px";
+    lan.style.setProperty("--dur", "11s"); lan.style.setProperty("--rise", (y + 160) + "px");
+    lan.innerHTML = '<div class="sw"><div class="bd"></div><div class="tx"></div></div>';
+    lan.querySelector(".tx").textContent = WISHES[wishIdx++ % WISHES.length];
+    $$("#moLan", mo).appendChild(lan);
+    setTimeout(() => lan.remove(), 11500);
+    lanCount++;
+    if(lanCount === 1) $$("#moHint", mo).textContent = "كمان واحدة";
+    if(lanCount >= 3){ $$("#moHint", mo).textContent = "كمّلي لما تحبي، أو اطلقي كمان"; showNext(); }
+  });
+
+  /* ---------------- فتح وقفل ---------------- */
+  function open(){
+    mo.classList.add("on"); void mo.offsetWidth; mo.classList.add("vis");
+    resize(); running = true; lastTs = performance.now(); nextShoot = performance.now() / 1000 + 2;
+    raf = requestAnimationFrame(frame);
+    updateClocks(); tick = setInterval(updateClocks, 1000);
+    wishIdx = 0; go(0);
+  }
+  function close(){
+    mo.classList.remove("vis");
+    timers.forEach(clearTimeout); timers = []; clearInterval(tick); fxOn = false; cur = -1;
+    setTimeout(() => {
+      if(mo.classList.contains("vis")) return;
+      mo.classList.remove("on"); running = false; cancelAnimationFrame(raf);
+      rockets = []; sparks = []; $$("#moLan", mo).innerHTML = "";
+      scenes.forEach(s => s.classList.remove("act"));
+    }, 1500);
+  }
+  btn.addEventListener("click", open);
+  $$("#moExit", mo).addEventListener("click", close);
+  document.addEventListener("keydown", e => { if(e.key === "Escape" && mo.classList.contains("vis")) close(); });
+  window.addEventListener("resize", () => { if(running) resize(); });
+})();
