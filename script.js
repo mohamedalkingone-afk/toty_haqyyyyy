@@ -553,3 +553,383 @@ if(cloud){
     pane.style.display = which === "eleven" ? "block" : "none";
   };
 })();
+/* =====================================================================
+   شهر مع بعض  —  الصق الكود ده كله في آخر ملف script.js وخلاص.
+   مفيش أي تعديل تاني في HTML أو CSS.
+   ===================================================================== */
+(function(){
+  if(document.getElementById("monthBtn")) return;   // علشان ميتضافش مرتين
+
+  /* ---------------- حاجات تقدر تعدلها ---------------- */
+  const START = new Date("2026-10-19T23:49:00+03:00");   // بداية العدّاد
+  const ANNIV = new Date("2026-11-19T23:49:00+02:00");   // أول شهر
+
+  const MEMORIES = [
+    { d: "6 أكتوبر",              t: "أول مرة قلتلك بحبك" },
+    { d: "19 أكتوبر · 11:49 مساءً", t: "اللحظة اللي ابتدا منها العدّ" },
+    { d: "20 أكتوبر",             t: "اعترفتيلي إنك بتحبيني" },
+    { d: "أول خناقة",              t: "بعدنا 16 ساعة بس، ورجعنا لبعض وقت المغرب" },
+    { d: "11 / 11",               t: "واحد جنب واحد... إحنا" },
+    { d: "19 نوفمبر",              t: "أول شهر كامل، وأنا لسه بحبك زي أول يوم" }
+  ];
+
+  const LETTER = [
+    "شهر عدّى، وأنا لسه حاسس إني في أول يوم.",
+    "اتعلمت في الشهر ده إن الحب مش بس كلام حلو. الحب إننا نرجع لبعض حتى لو زعلنا، وإننا نختار بعض كل يوم من جديد.",
+    "اتخانقنا، ورجعنا. وفي كل مرة كنت بتأكد إن مفيش مكان أهدى من جنبك.",
+    "أنا مش بوعدك بشهر كمان. أنا بوعدك بالعمر، وأنا قد وعدي.",
+    "إنتي حبي الأول والأخير، وكل يوم معاكي بيأكد لي ده أكتر.",
+    "كل شهر وإنتي حبيبتي."
+  ];
+
+  const WISHES = [
+    "أتمنى نفضل مع بعض في كل الفصول",
+    "أتمنى قلبك يفضل مرتاح جنبي",
+    "أتمنى أي خناقة بينا تعدّي وتسيبنا أقرب",
+    "أتمنى أمسك إيدك في كل مكان بنحلم بيه",
+    "أتمنى أشوف ضحكتك كل يوم",
+    "أتمنى العمر كله ييجي جنبك"
+  ];
+  /* ----------------------------------------------------- */
+
+  const $$ = (s, r) => (r || document).querySelector(s);
+  const pad2 = n => String(n).padStart(2, "0");
+
+  /* ---------------- الستايل ---------------- */
+  const css = document.createElement("style");
+  css.textContent = `
+  #monthBtn{display:none;margin-top:12px;font-size:19px;
+    background:linear-gradient(135deg,#1d1030,#4a1b46 60%,#a67c1f);box-shadow:0 8px 22px rgba(60,20,70,.45)}
+  #happyBtn[style*="block"] ~ #monthBtn{display:block}
+  .player{z-index:130}
+
+  #mo{position:fixed;inset:0;z-index:120;display:none;overflow:hidden;color:#fff4f7;
+    background:radial-gradient(120% 90% at 50% 0%,#3d1849 0%,#1a0d2e 45%,#09050f 100%);
+    opacity:0;transition:opacity 1.4s ease;font-family:"Amiri","Reem Kufi",serif}
+  #mo.on{display:block} #mo.vis{opacity:1}
+  #moCv{position:absolute;inset:0;width:100%;height:100%}
+  #mo button{font-family:inherit}
+
+  .mo-sc{position:absolute;inset:96px 18px 118px;display:flex;overflow:auto;text-align:center;
+    opacity:0;visibility:hidden;transform:translateY(18px);
+    transition:opacity 1.2s ease,transform 1.2s ease,visibility 1.2s}
+  .mo-sc.act{opacity:1;visibility:visible;transform:none}
+  .mo-in{margin:auto;width:100%;max-width:420px}
+
+  .mo-h{margin:0 0 10px;font-size:32px;font-weight:700;line-height:1.5;
+    background:linear-gradient(90deg,#f7d794,#ffc2d4);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .mo-sub{margin:0 0 14px;font-size:19px;line-height:1.9;opacity:.82}
+
+  /* حلقة الشهر */
+  .ring{position:relative;width:min(62vw,230px);aspect-ratio:1;margin:0 auto 14px}
+  .ring svg{width:100%;height:100%;overflow:visible}
+  .ring circle{fill:none;stroke-width:6;stroke-linecap:round}
+  .ring .trk{stroke:rgba(255,255,255,.1)}
+  .ring .prg{stroke:url(#moG);stroke-dasharray:590.6;stroke-dashoffset:590.6;
+    transition:stroke-dashoffset 3.2s cubic-bezier(.3,.7,.2,1);
+    filter:drop-shadow(0 0 8px rgba(255,170,200,.8))}
+  .ring .rc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring .rc b{font:italic 700 92px/1 "Playfair Display",serif;color:#fff2d6;text-shadow:0 0 30px rgba(247,215,148,.7)}
+  .ring .rc span{font-size:24px;opacity:.9;margin-top:2px}
+  .ring::before{content:"";position:absolute;inset:-26px;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,170,200,.22),transparent 65%);animation:moPulse 5s ease-in-out infinite}
+  @keyframes moPulse{0%,100%{transform:scale(.94);opacity:.7}50%{transform:scale(1.06);opacity:1}}
+
+  .cd{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:6px auto 0;max-width:340px}
+  .cd div{padding:10px 2px;border-radius:16px;background:rgba(255,255,255,.07);
+    border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(6px)}
+  .cd b{display:block;font-size:28px;color:#f7d794;font-variant-numeric:tabular-nums}
+  .cd span{font-size:14px;opacity:.75}
+
+  /* الأرقام */
+  .stat{display:flex;align-items:baseline;justify-content:center;gap:10px;padding:10px 0;
+    opacity:0;transform:translateY(14px);transition:opacity 1s ease,transform 1s ease}
+  .stat.in{opacity:1;transform:none}
+  .stat b{font:italic 700 46px/1.1 "Playfair Display",serif;color:#f7d794;font-variant-numeric:tabular-nums;
+    text-shadow:0 0 22px rgba(247,215,148,.45)}
+  .stat span{font-size:22px;opacity:.9}
+  .mo-end{margin-top:12px;font-size:21px;opacity:0;transition:opacity 1.4s ease}
+  .mo-end.in{opacity:.9}
+
+  /* الخط الزمني */
+  .tl2{position:relative;text-align:right;padding-right:34px;margin-top:6px}
+  .tl2 .spine{position:absolute;right:9px;top:8px;bottom:14px;width:2px;border-radius:2px;
+    background:linear-gradient(#f7d794,#ff9db8);transform-origin:top;transform:scaleY(0);
+    box-shadow:0 0 12px rgba(255,157,184,.7)}
+  .tl2 .ti{position:relative;padding:0 0 18px;opacity:0;transform:translateY(12px);
+    transition:opacity 1.1s ease,transform 1.1s ease}
+  .tl2 .ti.in{opacity:1;transform:none}
+  .tl2 .ti::before{content:"";position:absolute;right:-31px;top:7px;width:12px;height:12px;border-radius:50%;
+    background:#fff2d6;box-shadow:0 0 0 4px rgba(247,215,148,.25),0 0 16px rgba(247,215,148,.9)}
+  .tl2 .ti small{display:block;font-size:16px;color:#f7d794;letter-spacing:.2px}
+  .tl2 .ti p{margin:0;font-size:20px;line-height:1.7}
+
+  /* الرسالة */
+  .lt{padding:22px 20px 10px;border-radius:24px;text-align:right;background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(8px);box-shadow:0 20px 50px rgba(0,0,0,.35)}
+  .lt p{margin:0 0 14px;font-size:21px;line-height:2}
+  .lt p:last-child{font-size:25px;font-weight:700;color:#ffc2d4}
+  .lt .w{opacity:0;display:inline-block;white-space:pre;transform:translateY(6px);transition:opacity 1.1s ease,transform 1.1s ease}
+  .lt .w.in{opacity:1;transform:none}
+  .lt-tip{margin-top:10px;font-size:14px;opacity:.5}
+
+  /* الفوانيس */
+  #moLan{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .lan{position:absolute;width:0;animation:lanUp var(--dur) cubic-bezier(.25,.1,.3,1) forwards}
+  .lan .sw{position:absolute;left:0;top:0;animation:lanSway 3.4s ease-in-out infinite alternate}
+  .lan .bd{position:absolute;left:-24px;top:0;width:48px;height:62px;border-radius:14px 14px 10px 10px;
+    background:radial-gradient(circle at 50% 70%,#fff4c4,#ffb347 62%,#d9731f);
+    box-shadow:0 0 34px 10px rgba(255,170,70,.55),0 0 80px 24px rgba(255,120,60,.25)}
+  .lan .tx{position:absolute;left:-85px;top:72px;width:170px;text-align:center;font-size:16px;line-height:1.6;
+    color:#fff4e0;text-shadow:0 2px 10px rgba(0,0,0,.7);
+    background:rgba(24,10,40,.6);border-radius:14px;padding:4px 8px;box-sizing:border-box}
+  @keyframes lanUp{0%{transform:translateY(0);opacity:0}8%{opacity:1}85%{opacity:1}100%{transform:translateY(calc(-1 * var(--rise)));opacity:0}}
+  @keyframes lanSway{from{transform:translateX(-14px) rotate(-3deg)}to{transform:translateX(14px) rotate(3deg)}}
+  .tapHint{display:inline-block;margin-top:6px;font-size:17px;opacity:.7;animation:moPulse 3s ease-in-out infinite}
+
+  /* الختام */
+  .fin{margin:0 0 6px;font-size:40px;line-height:1.5;font-weight:700;
+    background:linear-gradient(100deg,#f7d794,#ffc2d4,#f7d794);background-size:220% 100%;
+    -webkit-background-clip:text;background-clip:text;color:transparent;animation:moShine 6s linear infinite}
+  @keyframes moShine{to{background-position:-220% 0}}
+  .live{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px auto 8px;max-width:340px}
+  .live div{padding:10px 2px;border-radius:16px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14)}
+  .live b{display:block;font-size:27px;color:#ffc2d4;font-variant-numeric:tabular-nums}
+  .live span{font-size:14px;opacity:.75}
+  .mo-again{width:auto;margin-top:10px;padding:10px 22px;box-shadow:none;border-radius:14px;border:1px solid rgba(255,255,255,.3);
+    background:transparent;color:#fff4f7;font-size:18px;cursor:pointer}
+
+  /* التحكم */
+  .mo-foot{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;
+    gap:12px;padding:0 18px 58px;z-index:5}
+  #moNext{width:min(86vw,320px);margin:0;padding:13px;border:0;border-radius:16px;font-size:21px;font-weight:700;
+    color:#3b1030;background:linear-gradient(135deg,#f7d794,#ff9db8);cursor:pointer;
+    box-shadow:0 10px 28px rgba(255,157,184,.35);opacity:0;pointer-events:none;transform:translateY(10px);
+    transition:opacity 1s ease,transform 1s ease}
+  #moNext.show{opacity:1;pointer-events:auto;transform:none}
+  .dots{display:flex;gap:8px;position:absolute;bottom:26px;left:50%;transform:translateX(-50%)}
+  .dots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.25);transition:all .6s}
+  .dots i.on{background:#f7d794;width:22px;border-radius:7px}
+  #moExit{position:absolute;left:14px;bottom:12px;z-index:6;width:auto;margin:0;box-shadow:none;padding:6px 12px;border-radius:12px;
+    border:1px solid rgba(255,255,255,.25);background:rgba(0,0,0,.25);color:#fff4f7;font-size:15px;cursor:pointer}
+  `;
+  document.head.appendChild(css);
+
+  /* ---------------- الزرار ---------------- */
+  const btn = document.createElement("button");
+  btn.id = "monthBtn"; btn.type = "button"; btn.textContent = "شهر مع بعض";
+  document.getElementById("happyBtn").after(btn);
+
+  /* ---------------- الشاشة ---------------- */
+  const mo = document.createElement("div");
+  mo.id = "mo";
+  mo.innerHTML =
+    '<canvas id="moCv"></canvas><div id="moLan"></div>' +
+
+    /* 0: الحلقة */
+    '<section class="mo-sc"><div class="mo-in">' +
+      '<div class="ring"><svg viewBox="0 0 220 220"><defs><linearGradient id="moG" x1="0" y1="0" x2="1" y2="1">' +
+      '<stop offset="0" stop-color="#f7d794"/><stop offset="1" stop-color="#ff9db8"/></linearGradient></defs>' +
+      '<circle class="trk" cx="110" cy="110" r="94"/>' +
+      '<circle class="prg" id="moPrg" cx="110" cy="110" r="94" transform="rotate(-90 110 110)"/></svg>' +
+      '<div class="rc"><b>1</b><span>شهر</span></div></div>' +
+      '<h2 class="mo-h">أول شهر بينا</h2>' +
+      '<p class="mo-sub" id="moCdLbl"></p>' +
+      '<div class="cd" id="moCd"></div>' +
+    '</div></section>' +
+
+    /* 1: الأرقام */
+    '<section class="mo-sc"><div class="mo-in">' +
+      '<h2 class="mo-h">شهر كامل يعني</h2>' +
+      '<div class="stat" data-to="31"><b>0</b><span>يوم</span></div>' +
+      '<div class="stat" data-to="744"><b>0</b><span>ساعة</span></div>' +
+      '<div class="stat" data-to="44640"><b>0</b><span>دقيقة</span></div>' +
+      '<div class="stat" data-to="2678400"><b>0</b><span>ثانية</span></div>' +
+      '<p class="mo-end">ولا لحظة منهم كانت عادية</p>' +
+    '</div></section>' +
+
+    /* 2: الخط الزمني */
+    '<section class="mo-sc"><div class="mo-in">' +
+      '<h2 class="mo-h">حكايتنا في شهر</h2>' +
+      '<div class="tl2"><i class="spine"></i>' +
+      MEMORIES.map(m => '<div class="ti"><small>' + m.d + '</small><p>' + m.t + '</p></div>').join("") +
+      '</div>' +
+    '</div></section>' +
+
+    /* 3: الرسالة */
+    '<section class="mo-sc"><div class="mo-in">' +
+      '<div class="lt" id="moLt"></div><div class="lt-tip">اضغطي على الرسالة لو عايزة تظهر كلها</div>' +
+    '</div></section>' +
+
+    /* 4: الفوانيس */
+    '<section class="mo-sc"><div class="mo-in">' +
+      '<h2 class="mo-h">اطلقي أمنية</h2>' +
+      '<p class="mo-sub">كل ضغطة في السما بتطلّع أمنية مني ليكي</p>' +
+      '<span class="tapHint" id="moHint">اضغطي في أي مكان</span>' +
+    '</div></section>' +
+
+    /* 5: الختام */
+    '<section class="mo-sc"><div class="mo-in">' +
+      '<h1 class="fin">كل شهر وإنتي حبيبتي</h1>' +
+      '<p class="mo-sub">شهر أول... وباقي العمر</p>' +
+      '<div class="live" id="moLive"></div>' +
+      '<p class="mo-sub" style="font-size:16px">والعدّاد لسه شغال، وهيفضل شغال</p>' +
+      '<button type="button" class="mo-again" id="moAgain">من الأول</button>' +
+    '</div></section>' +
+
+    '<div class="mo-foot"><button type="button" id="moNext"></button><div class="dots"></div></div>' +
+    '<button type="button" id="moExit">خروج</button>';
+  document.body.appendChild(mo);
+
+  const scenes = [...mo.querySelectorAll(".mo-sc")];
+  const dots = $$(".dots", mo);
+  scenes.forEach(() => dots.appendChild(document.createElement("i")));
+  const nextBtn = $$("#moNext", mo);
+
+  /* ---------------- الكانفاس: نجوم + شهاب + ألعاب نارية ---------------- */
+  const cv = $$("#moCv", mo), ctx = cv.getContext("2d");
+  let W, H, dpr, stars = [], shoot = null, nextShoot = 0, rockets = [], sparks = [];
+  let raf = 0, lastTs = 0, fxOn = false, nextFw = 0, running = false;
+
+  function resize(){
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    W = innerWidth; H = innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const n = Math.round(W * H / 5000);
+    stars = Array.from({length: n}, () => ({
+      x: Math.random() * W, y: Math.random() * H, r: Math.random() * 1.3 + .3,
+      ph: Math.random() * 6.28, sp: .6 + Math.random() * 1.6, g: Math.random() < .25
+    }));
+  }
+  function launch(){
+    const x = W * (.15 + Math.random() * .7);
+    rockets.push({x, y: H, ty: H * (.14 + Math.random() * .34), vy: -(520 + Math.random() * 120),
+                  h: [345, 40, 320, 200, 280, 20][Math.floor(Math.random() * 6)]});
+  }
+  function burst(x, y, h){
+    const n = 56;
+    for(let i = 0; i < n; i++){
+      const a = i / n * 6.283 + Math.random() * .1, s = 70 + Math.random() * 150;
+      sparks.push({x, y, px: x, py: y, vx: Math.cos(a) * s, vy: Math.sin(a) * s,
+                   life: 1, dec: .38 + Math.random() * .25, h: h + Math.random() * 30 - 15});
+    }
+  }
+  function frame(ts){
+    if(!running) return;
+    const dt = Math.min(.05, (ts - lastTs) / 1000 || .016); lastTs = ts;
+    const t = ts / 1000;
+    ctx.globalCompositeOperation = "source-over";
+    ctx.clearRect(0, 0, W, H);
+
+    for(const s of stars){
+      const a = .3 + .7 * (Math.sin(t * s.sp + s.ph) * .5 + .5);
+      ctx.globalAlpha = a;
+      ctx.fillStyle = s.g ? "#ffe3a8" : "#ffffff";
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.283); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    if(!shoot && t > nextShoot){
+      shoot = {x: Math.random() * W * .8 + W * .2, y: Math.random() * H * .35, vx: -520, vy: 300, life: 1};
+      nextShoot = t + 5 + Math.random() * 5;
+    }
+    if(shoot){
+      shoot.x += shoot.vx * dt; shoot.y += shoot.vy * dt; shoot.life -= dt * .9;
+      const g = ctx.createLinearGradient(shoot.x, shoot.y, shoot.x - shoot.vx * .22, shoot.y - shoot.vy * .22);
+      g.addColorStop(0, "rgba(255,255,255," + Math.max(0, shoot.life) + ")"); g.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.strokeStyle = g; ctx.lineWidth = 2; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(shoot.x, shoot.y); ctx.lineTo(shoot.x - shoot.vx * .22, shoot.y - shoot.vy * .22); ctx.stroke();
+      if(shoot.life <= 0) shoot = null;
+    }
+
+    if(fxOn && t > nextFw){ launch(); nextFw = t + 0.9 + Math.random() * 0.9; }
+    ctx.globalCompositeOperation = "lighter";
+    rockets = rockets.filter(r => {
+      r.y += r.vy * dt;
+      ctx.fillStyle = "hsla(" + r.h + ",90%,75%,.9)";
+      ctx.beginPath(); ctx.arc(r.x, r.y, 2.2, 0, 6.283); ctx.fill();
+      ctx.strokeStyle = "hsla(" + r.h + ",90%,70%,.35)"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(r.x, r.y); ctx.lineTo(r.x, r.y + 26); ctx.stroke();
+      if(r.y <= r.ty){ burst(r.x, r.y, r.h); return false; }
+      return true;
+    });
+    const drag = Math.pow(.2, dt);
+    sparks = sparks.filter(p => {
+      p.px = p.x; p.py = p.y;
+      p.vx *= drag; p.vy = p.vy * drag + 70 * dt;
+      p.x += p.vx * dt; p.y += p.vy * dt; p.life -= p.dec * dt;
+      if(p.life <= 0) return false;
+      ctx.strokeStyle = "hsla(" + p.h + ",95%,72%," + p.life + ")"; ctx.lineWidth = 2; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(p.px, p.py); ctx.lineTo(p.x, p.y); ctx.stroke();
+      return true;
+    });
+    raf = requestAnimationFrame(frame);
+  }
+
+  /* ---------------- منطق المشاهد ---------------- */
+  let cur = -1, timers = [], tick = 0, lanCount = 0, wishIdx = 0, letterDone = false;
+  const later = (fn, ms) => { timers.push(setTimeout(fn, ms)); };
+  const showNext = (label) => { nextBtn.textContent = label || "كمّلي"; nextBtn.classList.add("show"); };
+
+  function unitsHTML(arr){
+    return arr.map(u => '<div><b>' + u[0] + '</b><span>' + u[1] + '</span></div>').join("");
+  }
+  function updateClocks(){
+    const now = Date.now();
+    /* العدّاد اللي في أول مشهد */
+    const diff = ANNIV.getTime() - now, before = diff > 0, s = Math.floor(Math.abs(diff) / 1000);
+    $$("#moCdLbl", mo).textContent = before ? "فاضل على أول شهر لينا" : "عدّى على أول شهر لينا";
+    $$("#moCd", mo).innerHTML = unitsHTML([
+      [Math.floor(s / 86400), "يوم"], [pad2(Math.floor(s / 3600) % 24), "ساعة"],
+      [pad2(Math.floor(s / 60) % 60), "دقيقة"], [pad2(s % 60), "ثانية"]
+    ]);
+    /* العدّاد اللي في الختام */
+    const e = Math.max(0, Math.floor((now - START.getTime()) / 1000));
+    $$("#moLive", mo).innerHTML = unitsHTML([
+      [Math.floor(e / 86400), "يوم"], [pad2(Math.floor(e / 3600) % 24), "ساعة"],
+      [pad2(Math.floor(e / 60) % 60), "دقيقة"], [pad2(e % 60), "ثانية"]
+    ]);
+  }
+
+  function countUp(el, to, dur){
+    const t0 = performance.now();
+    (function step(n){
+      const k = Math.min(1, (n - t0) / dur), v = Math.round(to * (1 - Math.pow(1 - k, 3)));
+      el.textContent = v.toLocaleString("en-US");
+      if(k < 1 && cur === 1) requestAnimationFrame(step);
+    })(t0);
+  }
+
+  const enter = [
+    function(){                                   // 0 الحلقة
+      const frac = Math.max(0, Math.min(1, (Date.now() - START.getTime()) / (ANNIV.getTime() - START.getTime())));
+      later(() => { $$("#moPrg", mo).style.strokeDashoffset = String(590.6 * (1 - frac)); }, 500);
+      later(() => showNext("ابدأي الحكاية"), 2200);
+    },
+    function(){                                   // 1 الأرقام
+      const st = [...scenes[1].querySelectorAll(".stat")];
+      st.forEach((el, i) => later(() => { el.classList.add("in"); countUp(el.firstChild, +el.dataset.to, 2400); }, 500 + i * 1300));
+      later(() => scenes[1].querySelector(".mo-end").classList.add("in"), 500 + st.length * 1300 + 1800);
+      later(() => showNext(), 500 + st.length * 1300 + 2600);
+    },
+    function(){                                   // 2 الخط الزمني
+      const items = [...scenes[2].querySelectorAll(".ti")], gap = 2100;
+      const sp = scenes[2].querySelector(".spine");
+      sp.style.transition = "transform " + (items.length * gap / 1000) + "s linear"; sp.style.transform = "scaleY(1)";
+      items.forEach((el, i) => later(() => {
+        el.classList.add("in");
+        el.scrollIntoView({behavior: "smooth", block: "nearest"});
+      }, 600 + i * gap));
+      later(() => showNext(), 600 + items.length * gap + 600);
+    },
+    function(){                                   // 3 الرسالة
+      const box = $$("#moLt", mo); box.innerHTML = ""; letterDone = false;
+      const words = []; let delay = 600;
+      LETTER.forEach(par => {
+        const p = document.createElement("p");
+        par.split(" ").forEach(w => {
+          const sp = document.createElement("span"); sp.className = "w"; sp.textContent = w + " ";
+          p.appendChild(sp); words.push(sp);
+        });
+        box.a
